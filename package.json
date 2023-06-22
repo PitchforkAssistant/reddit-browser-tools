@@ -1,0 +1,9 @@
+{
+  "name": "reddit-browser-tools",
+  "description": "Rewritten versions of some of my bookmarklets and userscripts for Reddit. Some of their older versions may still be available on my gists.",
+  "author": "PitchforkAssistant",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "eslint": "^8.43.0"
+  }
+}

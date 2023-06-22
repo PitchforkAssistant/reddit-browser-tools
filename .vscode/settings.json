@@ -1,0 +1,8 @@
+{
+    "eslint.format.enable": true,
+    "[javascript]": {
+        "files.trimFinalNewlines": true,
+        "files.trimTrailingWhitespace": true,
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+}
