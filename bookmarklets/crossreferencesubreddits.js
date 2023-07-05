@@ -50,32 +50,51 @@ javascript: (function () {
             });
         });
         return subs;
-    })
-        .then(subs => {
-            const commonSubs = Object.keys(subs).filter(sub => subs[sub].length >= subCommonUserMinimum && !excludedSubs.has(sub)).sort((a, b) => subs[b].length - subs[a].length);
-            const subredditPromises = [];
-            commonSubs.forEach(sub => {
-                subredditPromises.push(fetch(`/r/${sub}/about.json`, fetchOptions).then(response => response.json()));
-            });
-            Promise.all(subredditPromises).then(subreddits => {
-                let outputString = "";
-                subreddits.forEach(subreddit => {
-                    if (subreddit.error) {
-                        console.log(subreddit.error);
-                        return;
-                    }
-                    const sub = subreddit.data.display_name;
-                    if (subreddit.data.subscribers < excludedSubsSize) {
-                        outputString += `• ${sub} (${subs[sub].length}): ${subs[sub].join(", ")}\n`;
+    }).then(subs => {
+        const commonSubs = Object.keys(subs).filter(sub => subs[sub].length >= subCommonUserMinimum && !excludedSubs.has(sub)).sort((a, b) => subs[b].length - subs[a].length);
+        const subredditSetsPromises = [];
+        const setOfSubs = new Set();
+        commonSubs.forEach(sub => {
+            if (setOfSubs.size === 100) {
+                subredditSetsPromises.push(fetch(`/api/info.json?sr_name=${Array.from(setOfSubs).join(",")}`, fetchOptions).then(response => response.json()));
+                setOfSubs.clear();
+            }
+            setOfSubs.add(sub);
+        });
+        if (setOfSubs.size > 0 && setOfSubs.size <= 100) {
+            subredditSetsPromises.push(fetch(`/api/info.json?sr_name=${Array.from(setOfSubs).join(",")}`, fetchOptions).then(response => response.json()));
+        }
+
+        Promise.all(subredditSetsPromises).then(subredditSets => {
+            const bigSubreddits = new Set();
+            subredditSets.forEach(subredditSet => {
+                if (subredditSet.error) {
+                    console.log(subredditSet.error);
+                    return;
+                } else if (!subredditSet.data.children.length) {
+                    console.log("Empty subreddit set response.");
+                    return;
+                }
+                subredditSet.data.children.forEach(subreddit => {
+                    if (subreddit.data.subscribers >= excludedSubsSize) {
+                        bigSubreddits.add(subreddit.data.display_name);
                     }
                 });
+            });
 
-                if (!commonSubs.length) {
-                    alert("No common subreddits found!");
-                } else {
-                    console.log(outputString);
-                    alert(outputString);
+            let outputString = "";
+            commonSubs.forEach(sub => {
+                if (!bigSubreddits.has(sub)) {
+                    outputString += `• ${sub} (${subs[sub].length}): ${subs[sub].join(", ")}\n`;
                 }
             });
+
+            if (!outputString.length) {
+                alert("No common subreddits found!");
+            } else {
+                console.log(outputString);
+                alert(outputString);
+            }
         });
+    });
 })();
