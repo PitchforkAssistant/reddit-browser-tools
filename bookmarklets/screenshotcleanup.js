@@ -17,19 +17,26 @@ javascript: (function () {
         ".karmaAgeTags",
         ".zombieTag",
         ".subreddit-subscribe",
-        ".imgSizeLabel"];
+        ".imgSizeLabel",
+        ".reddit-infobar",
+        ".comment-visits-box",
+        "#tb-context-menu",
+        "#tb-bottombar"];
     removalTargets.forEach(e => {
         document.querySelectorAll(e).forEach(e => e.remove());
     });
 
     document.querySelectorAll(".comment .tagline:not(.screenshot-cleanup)").forEach(e => {
+        e.classList.add("screenshot-cleanup");
         const removeButton = document.createElement("span");
         removeButton.textContent = "[X]";
         removeButton.style.cursor = "pointer";
         removeButton.style.float = "left";
-        removeButton.classList.add("screenshot-cleanup");
         removeButton.addEventListener("click", function () {
-            const comment = this.closest(".comment, .morechildren");
+            let comment = this.closest(".comment, .morechildren");
+            if (comment.parentElement.parentElement.classList.contains("child") && comment.parentElement.querySelectorAll(":scope>.thing").length === 1) {
+                comment = comment.parentElement.parentElement;
+            }
             comment.style.transition = "opacity 0.5s";
             comment.style.opacity = 0;
             setTimeout(() => comment.remove(), 500);
