@@ -21,7 +21,8 @@ javascript: (function () {
         ".reddit-infobar",
         ".comment-visits-box",
         "#tb-context-menu",
-        "#tb-bottombar"];
+        "#tb-bottombar",
+        ".child:empty"];
     removalTargets.forEach(e => {
         document.querySelectorAll(e).forEach(e => e.remove());
     });
@@ -34,7 +35,7 @@ javascript: (function () {
         removeButton.style.float = "left";
         removeButton.addEventListener("click", function () {
             let comment = this.closest(".comment, .morechildren");
-            if (comment.parentElement.parentElement.classList.contains("child") && comment.parentElement.querySelectorAll(":scope>.thing").length === 1) {
+            if (comment.parentElement.parentElement.classList.contains("child") && comment.parentElement.querySelectorAll(":scope .thing").length === 1) {
                 comment = comment.parentElement.parentElement;
             }
             comment.style.transition = "opacity 0.5s";
