@@ -21,25 +21,33 @@ javascript: (function () {
         cache: "no-store",
     };
 
-    const threadPromises = [];
+    const threadSetPromises = [];
+    const threadSet = new Set();
     Object.keys(threadsToCheck).forEach(threadID => {
-        threadPromises.push(fetch(`/comments/${threadID}.json?limit=1`, fetchOptions)
-            .then(response => response.json())
-            .catch(error => console.log(error)));
+        if (threadSet.size === 100) {
+            threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json`, fetchOptions).then(response => response.json()));
+            threadSet.clear();
+        }
+        threadSet.add(`t3_${threadID}`);
     });
+    if (threadSet.size > 0 && threadSet.size <= 100) {
+        threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json`, fetchOptions).then(response => response.json()));
+    }
 
-    Promise.all(threadPromises).then(threads => {
-        threads.forEach(thread => {
-            if (thread.error) {
-                if (thread.error === 404 || thread.error === 403) {
-                    return;
-                } else {
-                    console.log(thread.error);
-                    return;
-                }
+    Promise.all(threadSetPromises).then(threadSets => {
+        const threads = [];
+        threadSets.forEach(threadSet => {
+            if (threadSet.error) {
+                console.log(threadSet.error);
+                return;
             }
+            threadSet.data.children.forEach(thread => {
+                threads.push(thread);
+            });
+        });
 
-            const threadData = thread[0].data.children[0].data;
+        threads.forEach(thread => {
+            const threadData = thread.data;
             const threadID = threadData.id;
             const threadRemovedBy = threadData.banned_by;
             const threadRemovedCategory = threadData.removed_by_category;
