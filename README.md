@@ -65,4 +65,4 @@ GitHub does not allow dragable javascript links in the readme, so you will have 
 - [**screenshotcleanup.js**](https://github.com/PitchforkAssistant/reddit-browser-tools/raw/main/bookmarklets/screenshotcleanup.js)  
     This bookmarklet removes a lot of the clutter from a screenshot of an old Reddit page. It also adds buttons to temporarily hide certain content.  
     This is what the page looks like after the bookmarklet is ran, notice the [X] buttons on the top left of each comment.  
-    ![](https://i.imgur.com/wazD74h.png)
+    ![](https://i.imgur.com/3kf6FPS.png)
