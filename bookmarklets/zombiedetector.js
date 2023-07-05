@@ -10,12 +10,18 @@ javascript: (function () {
     }
 
     const authors = {};
-    document.querySelectorAll(".tagline>.author:not(.zombieChecked)").forEach(e => {
-        const user = e.textContent;
-        if (!(user in authors)) {
-            authors[user] = [];
-        }
-        authors[user].push(e);
+    document.querySelectorAll(".tagline>.author[class*= id-t2]:not(.zombieChecked)").forEach(e => {
+        e.className.split(" ").every(c => {
+            if (c.startsWith("id-t2_")) {
+                const userFullID = c.replace("id-", "");
+                if (!(userFullID in authors)) {
+                    authors[userFullID] = [];
+                }
+                authors[userFullID].push(e);
+                return false;
+            }
+            return true;
+        });
     });
 
     const fetchOptions = {
@@ -25,34 +31,47 @@ javascript: (function () {
         cache: "no-store",
     };
 
-    const userAboutPromises = [];
-    Object.keys(authors).forEach(user => {
-        userAboutPromises.push(fetch(`/user/${user}/about.json`, fetchOptions)
+    const userSetInfoPromises = [];
+    const setOfUsers = new Set();
+    Object.keys(authors).forEach(userFullID => {
+        if (setOfUsers.size === 300) {
+            userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
+                .then(response => response.json())
+                .catch(error => console.log(error)));
+            setOfUsers.clear();
+        }
+        setOfUsers.add(userFullID);
+    });
+    if (setOfUsers.size > 0 && setOfUsers.size <= 300) {
+        userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
             .then(response => response.json())
             .catch(error => console.log(error)));
-    });
+    }
 
-    Promise.all(userAboutPromises).then(users => {
+    Promise.all(userSetInfoPromises).then(userSetInfos => {
         const userOverviewPromises = [];
-        users.forEach(user => {
-            if (user.error) {
-                if (user.error === 404 || user.error === 403) {
+        userSetInfos.forEach(userSetInfo => {
+            if (userSetInfo.error) {
+                if (userSetInfo.error === 404 || userSetInfo.error === 403) {
                     return;
                 } else {
-                    console.log(user.error);
+                    console.log(userSetInfo.error);
                     return;
                 }
             }
 
-            if (user.data.created_utc < Date.now() / 1000 - zombieAgeThreshold * 24 * 60 * 60 && user.data.link_karma + user.data.comment_karma < zombieKarmaThreshold) {
-                userOverviewPromises.push(fetch(`/user/${user.data.name}/overview.json?limit=100`, fetchOptions)
-                    .then(response => response.json())
-                    .catch(error => console.log(error)));
-            } else {
-                authors[user.data.name].forEach(e => {
-                    e.classList.add("zombieChecked");
-                });
-            }
+            Object.keys(userSetInfo).forEach(userFullID => {
+                const userData = userSetInfo[userFullID];
+                if (userData.created_utc < Date.now() / 1000 - zombieAgeThreshold * 24 * 60 * 60 && userData.link_karma + userData.comment_karma < zombieKarmaThreshold) {
+                    userOverviewPromises.push(fetch(`/user/${userData.name}/overview.json?limit=100`, fetchOptions)
+                        .then(response => response.json())
+                        .catch(error => console.log(error)));
+                } else {
+                    authors[userFullID].forEach(e => {
+                        e.classList.add("zombieChecked");
+                    });
+                }
+            });
         });
 
         Promise.all(userOverviewPromises).then(userOverviews => {
@@ -66,7 +85,7 @@ javascript: (function () {
                     }
                 }
 
-                authors[userOverview.data.children[0].data.author].forEach(e => {
+                authors[userOverview.data.children[0].data.author_fullname].forEach(e => {
                     e.classList.add("zombieChecked");
 
                     if (userOverview.data.dist < 100) {

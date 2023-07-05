@@ -1,6 +1,6 @@
 javascript: (function () {
     const ages = {};
-    const usersToRequest = new Set();
+    const usersFullIDsToRequest = new Set();
 
     function addToAges (user, createdUTC) {
         const age = parseInt((new Date().getTime() - new Date(createdUTC * 1000).getTime()) / (1000 * 60 * 60 * 24)).toString();
@@ -27,7 +27,7 @@ javascript: (function () {
         }
     }
 
-    document.querySelectorAll("#siteTable .author, .commentarea .author").forEach(e => {
+    document.querySelectorAll("#siteTable .author[class*= id-t2], .commentarea .author[class*= id-t2]").forEach(e => {
         const user = e.textContent;
         if (user === "[deleted]") {
             return;
@@ -37,11 +37,18 @@ javascript: (function () {
         if (ageElement) {
             addToAges(user, parseInt(ageElement.dataset.createdutc));
         } else {
-            usersToRequest.add(user);
+            e.className.split(" ").every(c => {
+                if (c.startsWith("id-t2_")) {
+                    const userFullID = c.replace("id-", "");
+                    usersFullIDsToRequest.add(userFullID);
+                    return false;
+                }
+                return true;
+            });
         }
     });
 
-    if (usersToRequest.size === 0) {
+    if (usersFullIDsToRequest.size === 0) {
         showDupeAges();
     } else {
         const fetchOptions = {
@@ -51,26 +58,39 @@ javascript: (function () {
             cache: "no-store",
         };
 
-        const userAboutPromises = [];
-        usersToRequest.forEach(user => {
-            userAboutPromises.push(fetch(`/user/${user}/about.json`, fetchOptions)
+        const userSetInfoPromises = [];
+        const setOfUsers = new Set();
+        usersFullIDsToRequest.forEach(userFullID => {
+            if (setOfUsers.size === 300) {
+                userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
+                    .then(response => response.json())
+                    .catch(error => console.log(error)));
+                setOfUsers.clear();
+            }
+            setOfUsers.add(userFullID);
+        });
+        if (setOfUsers.size > 0 && setOfUsers.size <= 300) {
+            userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
                 .then(response => response.json())
                 .catch(error => console.log(error)));
-        });
+        }
 
-        Promise.all(userAboutPromises).then(userAbouts => {
-            userAbouts.forEach(userAbout => {
-                if (userAbout.error) {
-                    if (userAbout.error === 404 || userAbout.error === 403) {
+        Promise.all(userSetInfoPromises).then(userSetInfos => {
+            userSetInfos.forEach(userSetInfo => {
+                if (userSetInfo.error) {
+                    if (userSetInfo.error === 404 || userSetInfo.error === 403) {
                         return;
                     } else {
-                        console.log(userAbout.error);
+                        console.log(userSetInfo.error);
                         return;
                     }
                 }
 
-                addToAges(userAbout.data.name, userAbout.data.created_utc);
+                Object.values(userSetInfo).forEach(user => {
+                    addToAges(user.name, user.created_utc);
+                });
             });
+
             showDupeAges();
         });
     }

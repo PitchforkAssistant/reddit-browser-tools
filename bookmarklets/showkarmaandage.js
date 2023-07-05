@@ -1,18 +1,21 @@
 javascript: (function () {
-    const users = new Set();
+    const userFullIDs = new Set();
     const authorElements = {};
 
-    document.querySelectorAll(".author").forEach(e => {
+    document.querySelectorAll(".author[class*= id-t2]").forEach(e => {
         if (!e.parentNode.classList.contains("karmaAgeTags-added")) {
-            const user = e.textContent;
-            if (user === "[deleted]") {
-                return;
-            }
-            users.add(user);
-            if (!(user in authorElements)) {
-                authorElements[user] = [];
-            }
-            authorElements[user].push(e);
+            e.className.split(" ").every(c => {
+                if (c.startsWith("id-t2_")) {
+                    const userFullID = c.replace("id-", "");
+                    userFullIDs.add(userFullID);
+                    if (!(userFullID in authorElements)) {
+                        authorElements[userFullID] = [];
+                    }
+                    authorElements[userFullID].push(e);
+                    return false;
+                }
+                return true;
+            });
         }
     });
 
@@ -30,39 +33,52 @@ javascript: (function () {
         cache: "no-store",
     };
 
-    const userAboutPromises = [];
-    users.forEach(user => {
-        userAboutPromises.push(fetch(`/user/${user}/about.json`, fetchOptions)
+    const userSetInfoPromises = [];
+    const setOfUsers = new Set();
+    userFullIDs.forEach(userFullID => {
+        if (setOfUsers.size === 300) {
+            userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
+                .then(response => response.json())
+                .catch(error => console.log(error)));
+            setOfUsers.clear();
+        }
+        setOfUsers.add(userFullID);
+    });
+    if (setOfUsers.size > 0 && setOfUsers.size <= 300) {
+        userSetInfoPromises.push(fetch(`/api/user_data_by_account_ids.json?ids=${Array.from(setOfUsers).join(",")}`, fetchOptions)
             .then(response => response.json())
             .catch(error => console.log(error)));
-    });
+    }
 
-    Promise.all(userAboutPromises).then(userAbouts => {
-        userAbouts.forEach(userAbout => {
-            if (userAbout.error) {
-                if (userAbout.error === 404 || userAbout.error === 403) {
+    Promise.all(userSetInfoPromises).then(userSetInfos => {
+        userSetInfos.forEach(userSetInfo => {
+            if (userSetInfo.error) {
+                if (userSetInfo.error === 404 || userSetInfo.error === 403) {
                     return;
                 } else {
-                    console.log(userAbout.error);
+                    console.log(userSetInfo.error);
                     return;
                 }
             }
 
-            const linkKarma = userAbout.data.link_karma;
-            const commentKarma = userAbout.data.comment_karma;
-            const createdUTC = userAbout.data.created_utc;
-            const ageDays = parseInt((new Date().getTime() - new Date(createdUTC * 1000).getTime()) / (1000 * 60 * 60 * 24));
+            Object.keys(userSetInfo).forEach(userFullID => {
+                const userInfo = userSetInfo[userFullID];
+                const linkKarma = userInfo.link_karma;
+                const commentKarma = userInfo.comment_karma;
+                const createdUTC = userInfo.created_utc;
+                const ageDays = parseInt((new Date().getTime() - new Date(createdUTC * 1000).getTime()) / (1000 * 60 * 60 * 24));
 
-            const karmaAgeTag = document.createElement("span");
-            karmaAgeTag.classList.add("karmaAgeTags");
-            karmaAgeTag.dataset.totalkarma = linkKarma + commentKarma;
-            karmaAgeTag.innerHTML = `(<span class="karmaAgeTags-linkKarma" data-linkkarma=${linkKarma}><b>l: </b>${linkKarma}</span> /` +
-                                    ` <span class="karmaAgeTags-commentKarma" data-commentkarma=${commentKarma}><b>c: </b>${commentKarma}</span> /` +
-                                    ` <span class="karmaAgeTags-age" data-agedays=${ageDays} data-createdutc=${createdUTC} title="${new Date(createdUTC * 1000).toUTCString().replace("GMT", "UTC")}"><b>d: </b>${ageDays} days</span>) `;
+                const karmaAgeTag = document.createElement("span");
+                karmaAgeTag.classList.add("karmaAgeTags");
+                karmaAgeTag.dataset.totalkarma = linkKarma + commentKarma;
+                karmaAgeTag.innerHTML = `(<span class="karmaAgeTags-linkKarma" data-linkkarma=${linkKarma}><b>l: </b>${linkKarma}</span> /` +
+                                        ` <span class="karmaAgeTags-commentKarma" data-commentkarma=${commentKarma}><b>c: </b>${commentKarma}</span> /` +
+                                        ` <span class="karmaAgeTags-age" data-agedays=${ageDays} data-createdutc=${createdUTC} title="${new Date(createdUTC * 1000).toUTCString().replace("GMT", "UTC")}"><b>d: </b>${ageDays} days</span>) `;
 
-            authorElements[userAbout.data.name].forEach(authorElement => {
-                authorElement.parentNode.classList.add("karmaAgeTags-added");
-                authorElement.after(karmaAgeTag.cloneNode(true));
+                authorElements[userFullID].forEach(authorElement => {
+                    authorElement.parentNode.classList.add("karmaAgeTags-added");
+                    authorElement.after(karmaAgeTag.cloneNode(true));
+                });
             });
         });
     });
