@@ -57,7 +57,7 @@ javascript: (function () {
             commentLabel.classList.add("commentparentcheck");
             commentLabel.style.color = "#A00";
 
-            if (threadRemovedBy) {
+            if (threadRemovedBy && threadRemovedBy !== true) {
                 applyLabel = true;
                 commentLabel.classList.add("commentparentcheck-removed");
                 commentLabel.innerHTML = `&nbsp;<b>[removed by ${threadRemovedBy}]</b>`;
@@ -68,7 +68,7 @@ javascript: (function () {
                     commentLabel.innerHTML = "&nbsp;<b>[deleted]</b>";
                 } else {
                     commentLabel.classList.add("commentparentcheck-adminremoved");
-                    commentLabel.innerHTML = `&nbsp;<b>[${threadRemovedCategory}]</b>`;
+                    commentLabel.innerHTML = `&nbsp;<b>[removed_by_category ${threadRemovedCategory}]</b>`;
                 }
             }
 
