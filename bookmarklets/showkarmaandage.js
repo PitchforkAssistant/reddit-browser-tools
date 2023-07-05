@@ -73,7 +73,7 @@ javascript: (function () {
                 karmaAgeTag.dataset.totalkarma = linkKarma + commentKarma;
                 karmaAgeTag.innerHTML = `(<span class="karmaAgeTags-linkKarma" data-linkkarma=${linkKarma}><b>l: </b>${linkKarma}</span> /` +
                                         ` <span class="karmaAgeTags-commentKarma" data-commentkarma=${commentKarma}><b>c: </b>${commentKarma}</span> /` +
-                                        ` <span class="karmaAgeTags-age" data-agedays=${ageDays} data-createdutc=${createdUTC} title="${new Date(createdUTC * 1000).toUTCString().replace("GMT", "UTC")}"><b>d: </b>${ageDays} days</span>) `;
+                                        ` <span class="karmaAgeTags-age" data-agedays=${ageDays} data-createdutc=${createdUTC} title="${new Date(createdUTC * 1000).toUTCString().replace("GMT", "UTC")}"><b>a: </b>${ageDays} days</span>) `;
 
                 authorElements[userFullID].forEach(authorElement => {
                     authorElement.parentNode.classList.add("karmaAgeTags-added");
