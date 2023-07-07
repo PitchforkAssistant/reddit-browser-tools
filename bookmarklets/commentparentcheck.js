@@ -25,13 +25,13 @@ javascript: (function () {
     const threadSet = new Set();
     Object.keys(threadsToCheck).forEach(threadID => {
         if (threadSet.size === 100) {
-            threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json`, fetchOptions).then(response => response.json()));
+            threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json?limit=100`, fetchOptions).then(response => response.json()));
             threadSet.clear();
         }
         threadSet.add(`t3_${threadID}`);
     });
     if (threadSet.size > 0 && threadSet.size <= 100) {
-        threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json`, fetchOptions).then(response => response.json()));
+        threadSetPromises.push(fetch(`/by_id/${Array.from(threadSet).join(",")}.json?limit=100`, fetchOptions).then(response => response.json()));
     }
 
     Promise.all(threadSetPromises).then(threadSets => {
