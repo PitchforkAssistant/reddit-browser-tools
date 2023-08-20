@@ -26,6 +26,10 @@ Located in the userscripts folder, these run using the [Tampermonkey](https://ta
     This script adds a few buttons to the [Toolbox](https://github.com/toolbox-team/reddit-moderator-toolbox) queue tools to quickly only show  certain types of posts. The buttons are currently User Reports, Mod Reports, AutoModerator Reports, Filtered, and Approved. Toolbox's built-in unhide all button reverses these filters.    
     Shown in the bottom right of this screenshot. 
     ![](https://i.imgur.com/VsH41Ca.png)
+    
+- [**selectalltoolbox.user.js**](https://github.com/PitchforkAssistant/reddit-browser-tools/raw/main/userscripts/selectalltoolbox.user.js)  
+    This script adds a a button [Toolbox](https://github.com/toolbox-team/reddit-moderator-toolbox)'s mod quick mod actions that allows you to select all subs added to [quick access in the toolbox settings](https://www.reddit.com/r/toolbox/wiki/livedocs/modbutton#wiki_settings) with a single click.
+    ![](https://i.imgur.com/lONJruT.png)
 
 ---
 
