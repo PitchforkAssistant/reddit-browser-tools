@@ -70,3 +70,7 @@ GitHub does not allow dragable javascript links in the readme, so you will have 
     This bookmarklet removes a lot of the clutter from a screenshot of an old Reddit page. It also adds buttons to temporarily hide certain content.  
     This is what the page looks like after the bookmarklet is ran, notice the [X] buttons on the top left of each comment.  
     ![](https://i.imgur.com/3kf6FPS.png)
+
+- [**shreddit-flipper.js**](https://github.com/PitchforkAssistant/reddit-browser-tools/raw/main/bookmarklets/shreddit-flipper.js)  
+    Allows you to swap between Old Reddit and Shreddit with a single click, while also translating differing their URI schemes as best as it can. You'll want to edit the `oldHostname` and `newHostname` variable depending on your Reddit user preferences.  
+    ![](https://i.imgur.com/TWof62V.gif)
